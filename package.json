@@ -1,0 +1,17 @@
+{
+  "name": "divsplit",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Split dividend-paying stock tokens into a Price token and a Dividend token.",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "pnpm --filter @divsplit/app build",
+    "dev": "pnpm --filter @divsplit/app dev",
+    "contracts:build": "cd contracts && forge build",
+    "contracts:test": "cd contracts && forge test",
+    "contracts:coverage": "cd contracts && forge coverage --no-match-coverage \"(test|script|lib)/\" --no-match-contract \"Invariant|Fork\" --report summary",
+    "fork:up": "bash scripts/fork-up.sh",
+    "fork:deploy": "bash scripts/fork-deploy.sh",
+    "slither": "bash scripts/slither.sh"
+  }
+}

@@ -1,0 +1,17 @@
+node_modules/
+.next/
+app/.env.local
+.env
+.env.*
+!.env.example
+.fork/
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/broadcast/**/dry-run/
+crytic-export/
+*.log
+.vercel
+*.tsbuildinfo
+contracts/broadcast/
+deployments/*.dry-run.json

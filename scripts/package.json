@@ -1,0 +1,6 @@
+{
+  "name": "@divsplit/scripts",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Operational shell scripts (fork, deploy, slither). No dependencies."
+}
