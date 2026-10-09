@@ -43,11 +43,22 @@ export interface CashDividend {
  * Trailing-12-month historical yield. Token price already includes the ERC-8056 multiplier, so the per-share
  * price is tokenPrice / multiplier.
  */
-export function historicalYield(dividends: CashDividend[], tokenPriceUsd: number, multiplier: number, now: number = Date.now() / 1000): number {
+export function historicalYield(
+  dividends: CashDividend[],
+  tokenPriceUsd: number,
+  multiplier: number,
+  now: number = Date.now() / 1000,
+  historyStart?: number,
+): number {
   if (tokenPriceUsd <= 0 || multiplier <= 0) return 0;
   const sharePrice = tokenPriceUsd / multiplier;
-  const sum = dividends.filter((d) => d.exDate <= now && d.exDate > now - SECONDS_PER_YEAR).reduce((a, d) => a + d.ratePerShare, 0);
-  return sum / sharePrice;
+  const past = dividends.filter((d) => d.exDate <= now && d.exDate > now - SECONDS_PER_YEAR).sort((a, b) => b.exDate - a.exDate);
+  if (past.length === 0) return 0;
+  // The issuer feed may cover less than a year. In that case a 12-month sum understates the yield, so annualise the
+  // most recent payment as a quarterly payer (the cadence of every listed stock/ETF).
+  const start = historyStart ?? Math.min(...dividends.map((d) => d.exDate));
+  if (start > now - (SECONDS_PER_YEAR * 11) / 12) return (past[0].ratePerShare * 4) / sharePrice;
+  return past.reduce((a, d) => a + d.ratePerShare, 0) / sharePrice;
 }
 
 /** Positive spread = market prices more dividends than history suggests (D rich); negative = D cheap. */

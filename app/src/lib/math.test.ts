@@ -20,8 +20,15 @@ test("historical yield uses per-share price", () => {
   const now = 1_800_000_000;
   const divs = [0.25, 0.25, 0.26, 0.26].map((r, i) => ({ exDate: now - (i + 1) * 80 * 86400, ratePerShare: r }));
   divs.push({ exDate: now - 2 * SECONDS_PER_YEAR, ratePerShare: 100 }); // outside window
-  const y = historicalYield(divs, 201, 1.005, now);
+  const y = historicalYield(divs, 201, 1.005, now, now - 2 * SECONDS_PER_YEAR);
   assert.ok(Math.abs(y - 1.02 / 200) < 1e-12);
+});
+
+test("short feed history annualises the latest quarterly payment", () => {
+  const now = 1_800_000_000;
+  const divs = [{ exDate: now - 30 * 86400, ratePerShare: 0.91 }];
+  const y = historicalYield(divs, 500, 1, now, now - 60 * 86400);
+  assert.ok(Math.abs(y - (0.91 * 4) / 500) < 1e-12);
 });
 
 test("years and apy helpers", () => {

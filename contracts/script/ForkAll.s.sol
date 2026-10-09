@@ -70,7 +70,13 @@ contract ForkAll is Deploy {
             dPool.swapStableForExactToken(0.4e18, type(uint256).max, deployer, dl);
             pPool.swapExactTokenForStable(0.2e18, 0, deployer, dl);
             dPool.swapExactTokenForStable(0.1e18, 0, deployer, dl);
+            // pre-approve the Router for everything the UI routes through it, so these allowance slots are local
+            // state (the public RPC cannot serve their original values once the fork block is pruned)
+            IERC20(m.pToken).approve(address(d.router), type(uint256).max);
+            IERC20(m.dToken).approve(address(d.router), type(uint256).max);
+            IERC20(m.stock).approve(address(d.router), type(uint256).max);
         }
+        stable.approve(address(d.router), type(uint256).max);
         vm.stopBroadcast();
         console2.log("Seeded markets:", n);
     }

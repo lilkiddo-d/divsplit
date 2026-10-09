@@ -62,6 +62,8 @@ export function useMarketStats(markets: MarketInfo[] = deployment?.markets ?? []
   };
   const corp = useCorporateActions();
 
+  // earliest record in the issuer feed (any symbol) = how far back the history goes
+  const feedStart = corp.data && corp.data.length ? Math.min(...corp.data.map((a) => a.date)) : undefined;
   const stats: MarketStats[] = markets.map((m, i) => {
     const r = (k: number) => {
       const x = reads.data?.[i * per + k];
@@ -79,7 +81,13 @@ export function useMarketStats(markets: MarketInfo[] = deployment?.markets ?? []
     const tokenPrice = unitPrice !== undefined ? unitPrice / (wad(r(6)) || 1) : undefined;
     const hist =
       tokenPrice && multiplier
-        ? historicalYield(actions.filter((a) => a.rate !== null).map((a) => ({ exDate: a.date, ratePerShare: a.rate! })), tokenPrice, multiplier)
+        ? historicalYield(
+            actions.filter((a) => a.rate !== null).map((a) => ({ exDate: a.date, ratePerShare: a.rate! })),
+            tokenPrice,
+            multiplier,
+            now,
+            feedStart,
+          )
         : undefined;
     const dUnits = dLiquid ? wad(r(2)) : undefined;
     return {

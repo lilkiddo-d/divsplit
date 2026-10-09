@@ -267,6 +267,16 @@ function TradeForm({ market, expired, onDone }: { market: M; expired: boolean; o
     ],
   });
   const quote = reads.data?.[0]?.status === "success" ? (reads.data[0].result as bigint) : undefined;
+  // price impact vs the pool's spot price (both in USDG per whole token)
+  const spot = useReadContracts({ allowFailure: true, contracts: [{ address: pool, abi: ammAbi, functionName: "spotPriceInStable" }] });
+  const spotPx = spot.data?.[0]?.status === "success" ? Number(formatUnits(spot.data[0].result as bigint, 18)) : undefined;
+  const execPx =
+    quote !== undefined && quote > 0n && amt > 0n
+      ? dir === "buy"
+        ? Number(formatUnits(amt, 6)) / Number(formatUnits(quote, 18))
+        : Number(formatUnits(quote, 6)) / Number(formatUnits(amt, 18))
+      : undefined;
+  const impact = spotPx && execPx ? Math.abs(execPx / spotPx - 1) : undefined;
 
   return (
     <>
@@ -290,6 +300,12 @@ function TradeForm({ market, expired, onDone }: { market: M; expired: boolean; o
             ? "No quote (insufficient liquidity or stale oracle)"
             : "Swaps settle against the time-decay pool; prices converge to P = 1 pair and D = 0 at expiry."}
       </p>
+      {impact !== undefined && (
+        <p className={`notice ${impact > 0.05 ? "status err" : ""}`}>
+          Price impact {(impact * 100).toFixed(2)}% (execution ≈ ${execPx!.toFixed(4)} vs spot ${spotPx!.toFixed(4)})
+          {impact > 0.05 ? " — large relative to pool liquidity; consider a smaller order." : ""}
+        </p>
+      )}
       <button
         className="btn"
         disabled={!address || amt === 0n || quote === undefined || expired}
